@@ -15,6 +15,6 @@ if [[ -f "${MASTER_KEY_FILE}" ]]; then
   # tr strips any trailing newline so RAILS_MASTER_KEY is exactly the 32-char hex.
   export RAILS_MASTER_KEY="$(tr -d '[:space:]' < "${MASTER_KEY_FILE}")"
 else
-  >&2 echo "laurenandpete-wedding: ${MASTER_KEY_FILE} not found."
+  >&2 echo "marcano-wedding: ${MASTER_KEY_FILE} not found."
   >&2 echo "  Create it (your config/master.key contents) before starting the app — see README.md."
 fi

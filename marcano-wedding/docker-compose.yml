@@ -3,17 +3,13 @@
 # Umbrel automatically injects an `app_proxy` container in front of this stack. It is the
 # only user-facing entry point: it listens on the `port:` declared in umbrel-app.yml and
 # forwards to APP_HOST:APP_PORT below. The `web` service therefore publishes NO ports itself.
-#
-# Container hostnames on Umbrel are "<app-id>_<service>_1", so with app id
-# `laurenandpete-wedding` (see umbrel-app.yml) the web container is
-# `laurenandpete-wedding_web_1`. If you rename the app id or the service, update APP_HOST.
 
 version: "3.7"
 
 services:
   app_proxy:
     environment:
-      APP_HOST: laurenandpete-wedding_web_1
+      APP_HOST: marcano-wedding_web_1
       # Thruster (the image's default web front) listens on 80 inside the container.
       APP_PORT: 80
 
