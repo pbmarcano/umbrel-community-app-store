@@ -1,0 +1,33 @@
+manifestVersion: 1
+id: laurenandpete-wedding
+name: Lauren & Pete's Wedding
+tagline: A private photo & video feed for our wedding guests
+icon: https://laurenandpete.com/icon.png
+category: social
+version: "1.0.0"
+port: 24533
+description: >-
+  A Rails guest app for Lauren & Pete's wedding: magic-link sign-in, a photo/video
+  feed with reactions and comments, notifications, a leaderboard, and an admin suite
+  (RSVP dashboard, announcement blasts, photo gallery/zip export).
+
+
+  Self-hosted, single-container: all guest photos, videos, and the SQLite databases
+  live on one persistent volume. Requires your own RAILS_MASTER_KEY (see the app's
+  docker-compose.yml) and, for outbound email, SMTP credentials in your Rails credentials.
+developer: Pete Marcano
+website: https://laurenandpete.com
+submitter: Pete Marcano
+submission: https://github.com/pbmarcano/wedding
+repo: https://github.com/pbmarcano/wedding
+support: https://github.com/pbmarcano/wedding/issues
+gallery:
+  - https://laurenandpete.com/gallery/1.jpg
+  - https://laurenandpete.com/gallery/2.jpg
+  - https://laurenandpete.com/gallery/3.jpg
+releaseNotes: >-
+  First Umbrel release. Serves the guest feed over plain HTTP behind Umbrel's app_proxy.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
