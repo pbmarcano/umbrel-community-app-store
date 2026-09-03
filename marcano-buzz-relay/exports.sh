@@ -3,7 +3,7 @@
 export APP_MARCANO_BUZZ_RELAY_URL="wss://buzz.jerseyplebs.com"
 export APP_MARCANO_BUZZ_MEDIA_BASE_URL="https://buzz.jerseyplebs.com/media"
 export APP_MARCANO_BUZZ_CORS_ORIGINS="https://buzz.jerseyplebs.com"
-export APP_MARCANO_BUZZ_RELAY_OWNER_PUBKEY="9c83fc9cc0d76e2c11dc6cec8152bc72318f3f6110aea1d4da065140dab9f8b5"
+export APP_MARCANO_BUZZ_RELAY_OWNER_PUBKEY="df478ecdffe91db90469aeced8d5a33efcaaf75231bb4d768e711184495107a7"
 
 # Stable, independent per-install secrets derived from Umbrel's device seed. The
 # owner's Nostr private key is intentionally not stored or derived here.

@@ -35,7 +35,7 @@ Phase 2 core runtime checks, including Cloudflare Host-header and WebSocket beha
 Prototype inputs recorded on 2026-08-26:
 
 1. `RELAY_OWNER_PUBKEY`:
-   `9c83fc9cc0d76e2c11dc6cec8152bc72318f3f6110aea1d4da065140dab9f8b5`.
+   `df478ecdffe91db90469aeced8d5a33efcaaf75231bb4d768e711184495107a7`.
    This is public information.
 2. `RELAY_URL`: `wss://buzz.jerseyplebs.com`, served through an existing Cloudflare
    Tunnel that remains outside the Umbrel package.
