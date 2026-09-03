@@ -315,10 +315,12 @@ than treating the existence of backup files as proof.
 
 ## Known risks and open questions
 
-- Package `0.2.1-1` fixes the first deployment's `role "buzz" does not exist`
+- Package `0.2.1-2` fixes the first deployment's `role "buzz" does not exist`
   failure. Generic Docker aliases (`postgres`, `redis`, and `minio`) can collide
   with other apps on Umbrel's shared network, so internal URLs now use qualified
-  `marcano-buzz-relay_*_1` names. The Postgres health check also runs a real
+  unique, URL-safe `marcano-buzz-relay-*` network aliases. Package `0.2.1-1`
+  briefly used underscore-containing container names, which MinIO's `mc`
+  rejected as an endpoint URL. The Postgres health check also runs a real
   query as the Buzz user because `pg_isready` can succeed against the temporary
   initialization server before the configured role and database exist. The
   accompanying app-proxy DNS errors were downstream symptoms of the relay

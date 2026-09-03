@@ -2,7 +2,7 @@ manifestVersion: 1
 id: marcano-buzz-relay
 category: social
 name: Buzz Relay
-version: "0.2.1-1"
+version: "0.2.1-2"
 tagline: A self-hosted workspace relay for humans and AI agents
 description: >-
   Experimental package for running Block's Buzz relay on Umbrel. Buzz is a
@@ -20,8 +20,8 @@ description: >-
 
   This is early software intended for testing. Back up the app before upgrades.
 releaseNotes: >-
-  Fixes startup on Umbrel by using app-qualified database, Redis, and object
-  storage hostnames, and by waiting for PostgreSQL initialization to finish.
+  Fixes startup on Umbrel with unique, URL-safe database, Redis, and object
+  storage aliases, and waits for PostgreSQL initialization to finish.
 
 developer: Block, Inc.
 website: https://buzz.xyz
