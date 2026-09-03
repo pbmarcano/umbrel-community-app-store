@@ -5,7 +5,14 @@ software packaged to run locally on umbrelOS.
 
 ## Apps
 
-No apps are currently published. New packages will be added as top-level directories.
+| App | ID | Status |
+| --- | --- | --- |
+| Buzz Relay | `marcano-buzz-relay` | Experimental prototype |
+
+## Work in progress
+
+- [Buzz relay packaging strategy](docs/buzz-relay.md) — research, architecture,
+  decisions, phased implementation plan, and session handoff notes for the first app.
 
 ## Add this store to Umbrel
 

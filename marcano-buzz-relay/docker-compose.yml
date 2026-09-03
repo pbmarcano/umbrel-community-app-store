@@ -1,0 +1,134 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: marcano-buzz-relay_relay_1
+      APP_PORT: 3000
+      # Buzz clients authenticate with Nostr rather than an Umbrel browser cookie.
+      PROXY_AUTH_ADD: "false"
+
+  relay:
+    image: ghcr.io/block/buzz:0.2.1@sha256:4e31b7c7abb7d00b6f513dc559e58d2b980416f1dc400aa01bcf762cf2989cfc
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      BUZZ_BIND_ADDR: 0.0.0.0:3000
+      BUZZ_HEALTH_PORT: "8080"
+      BUZZ_METRICS_PORT: "9102"
+      DATABASE_URL: postgres://buzz:${APP_MARCANO_BUZZ_POSTGRES_PASSWORD}@postgres:5432/buzz
+      REDIS_URL: redis://:${APP_MARCANO_BUZZ_REDIS_PASSWORD}@redis:6379
+      BUZZ_S3_ENDPOINT: http://minio:9000
+      BUZZ_S3_ADDRESSING_STYLE: path
+      BUZZ_S3_REGION: us-east-1
+      BUZZ_S3_ACCESS_KEY: ${APP_MARCANO_BUZZ_S3_ACCESS_KEY}
+      BUZZ_S3_SECRET_KEY: ${APP_MARCANO_BUZZ_S3_SECRET_KEY}
+      BUZZ_S3_BUCKET: buzz-media
+      BUZZ_GIT_REPO_PATH: /data/git
+      BUZZ_GIT_HOOK_HMAC_SECRET: ${APP_MARCANO_BUZZ_GIT_HMAC_SECRET}
+      BUZZ_RELAY_PRIVATE_KEY: ${APP_MARCANO_BUZZ_RELAY_PRIVATE_KEY}
+      RELAY_OWNER_PUBKEY: ${APP_MARCANO_BUZZ_RELAY_OWNER_PUBKEY}
+      RELAY_URL: ${APP_MARCANO_BUZZ_RELAY_URL}
+      BUZZ_MEDIA_BASE_URL: ${APP_MARCANO_BUZZ_MEDIA_BASE_URL}
+      BUZZ_CORS_ORIGINS: ${APP_MARCANO_BUZZ_CORS_ORIGINS}
+      BUZZ_REQUIRE_AUTH_TOKEN: "true"
+      BUZZ_REQUIRE_RELAY_MEMBERSHIP: "true"
+      BUZZ_ALLOW_NIP_OA_AUTH: "true"
+      BUZZ_AUTO_MIGRATE: "true"
+      BUZZ_GIT_CONFORMANCE_PROBE: "true"
+      RUST_LOG: buzz_relay=info,buzz_db=info,buzz_auth=info,buzz_pubsub=info,tower_http=info
+    volumes:
+      - ${APP_DATA_DIR}/data/git:/data/git
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8080;
+          printf "GET /_readiness HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n" >&3;
+          grep -q "200 OK" <&3'
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  postgres:
+    image: postgres:17.11-alpine3.24@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      POSTGRES_DB: buzz
+      POSTGRES_USER: buzz
+      POSTGRES_PASSWORD: ${APP_MARCANO_BUZZ_POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  redis:
+    image: redis:7.4.11-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    restart: on-failure
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${APP_MARCANO_BUZZ_REDIS_PASSWORD}
+    environment:
+      REDIS_PASSWORD: ${APP_MARCANO_BUZZ_REDIS_PASSWORD}
+    volumes:
+      - ${APP_DATA_DIR}/data/redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+    restart: on-failure
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${APP_MARCANO_BUZZ_S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${APP_MARCANO_BUZZ_S3_SECRET_KEY}
+    volumes:
+      - ${APP_DATA_DIR}/data/minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      BUZZ_S3_ACCESS_KEY: ${APP_MARCANO_BUZZ_S3_ACCESS_KEY}
+      BUZZ_S3_SECRET_KEY: ${APP_MARCANO_BUZZ_S3_SECRET_KEY}
+      BUZZ_S3_BUCKET: buzz-media
+    entrypoint: >-
+      /bin/sh -euc '
+        mc alias set local http://minio:9000 "$${BUZZ_S3_ACCESS_KEY}" "$${BUZZ_S3_SECRET_KEY}";
+        mc mb --ignore-existing "local/$${BUZZ_S3_BUCKET}";
+        mc anonymous set none "local/$${BUZZ_S3_BUCKET}"
+      '

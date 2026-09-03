@@ -1,0 +1,39 @@
+manifestVersion: 1
+id: marcano-buzz-relay
+category: social
+name: Buzz Relay
+version: "0.2.1"
+tagline: A self-hosted workspace relay for humans and AI agents
+description: >-
+  Experimental package for running Block's Buzz relay on Umbrel. Buzz is a
+  Nostr-based workspace where people and AI agents collaborate through signed
+  messages, channels, media, and Git activity.
+
+
+  This prototype is configured for the private community at
+  wss://buzz.jerseyplebs.com. It requires that hostname to be routed through an
+  existing TLS-enabled Cloudflare Tunnel to this app's Umbrel port. The relay is
+  closed to unapproved members and uses Buzz's own Nostr authentication; Umbrel's
+  browser authentication is intentionally disabled so desktop, CLI, and agent
+  clients can connect.
+
+
+  This is early software intended for testing. Back up the app before upgrades.
+releaseNotes: ""
+
+developer: Block, Inc.
+website: https://buzz.xyz
+dependencies: []
+repo: https://github.com/block/buzz
+support: https://github.com/block/buzz/issues
+
+port: 3780
+icon: https://raw.githubusercontent.com/block/buzz/relay-v0.2.1/web/src/assets/app-icon%403x.png
+gallery: []
+path: ""
+
+defaultUsername: ""
+defaultPassword: ""
+
+submitter: Pete Marcano
+submission: https://github.com/pbmarcano/umbrel-community-app-store
