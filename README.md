@@ -8,14 +8,11 @@ software packaged to run locally on umbrelOS.
 | App | ID | Status |
 | --- | --- | --- |
 | Buzz Relay | `marcano-buzz-relay` | Experimental prototype |
-| Bugsink | `marcano-bugsink` | Static package; runtime testing pending |
 
 ## Work in progress
 
 - [Buzz relay packaging strategy](docs/buzz-relay.md) — research, architecture,
   decisions, phased implementation plan, and session handoff notes for the first app.
-- [Bugsink packaging strategy](docs/bugsink.md) — upstream Docker research,
-  Umbrel mapping, Rails migration notes, and runtime validation checklist.
 
 ## Add this store to Umbrel
 
