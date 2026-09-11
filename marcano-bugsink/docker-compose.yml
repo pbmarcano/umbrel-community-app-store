@@ -1,0 +1,39 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: marcano-bugsink_web_1
+      APP_PORT: 8000
+      # Sentry SDKs cannot authenticate with an Umbrel browser session. Bugsink
+      # protects its dashboard with its own login and authenticates ingestion by DSN.
+      PROXY_AUTH_ADD: "false"
+
+  web:
+    image: bugsink/bugsink:2.5.1@sha256:ecdd845877464d70d61244b8adba20d623e1860e88d8338f2808d9cc2925745c
+    # Umbrel app data is owned by its normal host user. Bugsink does not require
+    # its image's built-in UID as long as the process can write /data and /tmp.
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      SECRET_KEY: ${APP_MARCANO_BUGSINK_SECRET_KEY}
+      CREATE_SUPERUSER: admin@umbrel.local:${APP_PASSWORD}
+      PORT: "8000"
+      DATABASE_PATH: /data/db.sqlite3
+      BASE_URL: http://${DEVICE_DOMAIN_NAME}:${APP_PROXY_PORT}
+      # Umbrel terminates the default local HTTP connection at app_proxy.
+      BEHIND_PLAIN_HTTP_PROXY: "true"
+      BEHIND_HTTPS_PROXY: "false"
+      USE_X_FORWARDED_HOST: "false"
+      PHONEHOME: "false"
+      MINIMIZE_INFORMATION_EXPOSURE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import requests; requests.get(\"http://localhost:8000/health/ready\").raise_for_status()'"]
+      interval: 10s
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
