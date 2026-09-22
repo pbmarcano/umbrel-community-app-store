@@ -30,8 +30,8 @@ acceptable until the package is explicitly marked ready for wider use.
   end-to-end QR pairing remain to be validated.
 - General-purpose setup UI: deliberately deferred.
 
-Next action: update to package `0.2.1-3`, route
-`pair.buzz.jerseyplebs.com` through Cloudflare Tunnel to Umbrel port `3781`,
+Next action: update to package `0.2.1-4`, route
+`pairing.jerseyplebs.com` through Cloudflare Tunnel to Umbrel port `3781`,
 and validate desktop-to-mobile QR pairing.
 
 ## Inputs needed for the prototype

@@ -2,7 +2,7 @@ manifestVersion: 1
 id: marcano-buzz-relay
 category: social
 name: Buzz Relay
-version: "0.2.1-3"
+version: "0.2.1-4"
 tagline: A self-hosted workspace relay for humans and AI agents
 description: >-
   Experimental package for running Block's Buzz relay on Umbrel. Buzz is a
@@ -20,8 +20,8 @@ description: >-
 
   This is early software intended for testing. Back up the app before upgrades.
 releaseNotes: >-
-  Adds a dedicated NIP-AB pairing relay on port 3781 for Buzz Mobile and removes
-  the unnecessary read-replica configuration.
+  Uses the TLS-compatible pairing.jerseyplebs.com hostname for the dedicated
+  Buzz Mobile pairing relay on port 3781.
 
 developer: Block, Inc.
 website: https://buzz.xyz
