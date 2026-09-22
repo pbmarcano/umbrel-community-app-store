@@ -19,7 +19,6 @@ services:
       BUZZ_HEALTH_PORT: "8080"
       BUZZ_METRICS_PORT: "9102"
       DATABASE_URL: postgres://buzz:${APP_MARCANO_BUZZ_POSTGRES_PASSWORD}@marcano-buzz-relay-postgres:5432/buzz
-      READ_DATABASE_URL: postgres://buzz:${APP_MARCANO_BUZZ_POSTGRES_PASSWORD}@marcano-buzz-relay-postgres:5432/buzz
       REDIS_URL: redis://:${APP_MARCANO_BUZZ_REDIS_PASSWORD}@marcano-buzz-relay-redis:6379
       BUZZ_S3_ENDPOINT: http://marcano-buzz-relay-minio:9000
       BUZZ_S3_ADDRESSING_STYLE: path
@@ -32,6 +31,7 @@ services:
       BUZZ_RELAY_PRIVATE_KEY: ${APP_MARCANO_BUZZ_RELAY_PRIVATE_KEY}
       RELAY_OWNER_PUBKEY: ${APP_MARCANO_BUZZ_RELAY_OWNER_PUBKEY}
       RELAY_URL: ${APP_MARCANO_BUZZ_RELAY_URL}
+      BUZZ_PAIRING_RELAY_URL: ${APP_MARCANO_BUZZ_PAIRING_RELAY_URL}
       BUZZ_MEDIA_BASE_URL: ${APP_MARCANO_BUZZ_MEDIA_BASE_URL}
       BUZZ_CORS_ORIGINS: ${APP_MARCANO_BUZZ_CORS_ORIGINS}
       BUZZ_REQUIRE_AUTH_TOKEN: "true"
@@ -62,6 +62,20 @@ services:
       timeout: 3s
       retries: 12
       start_period: 30s
+
+  # Stateless NIP-AB rendezvous relay. Pairing uses temporary identities that
+  # cannot authenticate against the membership-locked primary relay.
+  pairing-relay:
+    image: ghcr.io/block/buzz:0.2.1@sha256:4e31b7c7abb7d00b6f513dc559e58d2b980416f1dc400aa01bcf762cf2989cfc
+    entrypoint: ["/usr/local/bin/buzz-pair-relay"]
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    environment:
+      BUZZ_PAIR_RELAY_BIND_ADDR: 0.0.0.0:5000
+      RUST_LOG: buzz_pair_relay=info
+    ports:
+      - "3781:5000"
 
   postgres:
     image: postgres:17.11-alpine3.24@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73

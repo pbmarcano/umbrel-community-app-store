@@ -24,11 +24,15 @@ acceptable until the package is explicitly marked ready for wider use.
 - Canonical relay URL: `wss://buzz.jerseyplebs.com`.
 - Umbrel host: AMD64 with approximately 32 GB RAM; free storage must be checked
   before runtime installation.
-- Runtime testing on Umbrel: not started.
+- Runtime testing on Umbrel: primary relay, authenticated desktop access, event
+  ingestion, PostgreSQL, Redis, and MinIO validated successfully.
+- Mobile pairing sidecar: packaged on host port `3781`; external TLS routing and
+  end-to-end QR pairing remain to be validated.
 - General-purpose setup UI: deliberately deferred.
 
-Next action: install the statically validated package through Umbrel and execute the
-Phase 2 core runtime checks, including Cloudflare Host-header and WebSocket behavior.
+Next action: update to package `0.2.1-3`, route
+`pair.buzz.jerseyplebs.com` through Cloudflare Tunnel to Umbrel port `3781`,
+and validate desktop-to-mobile QR pairing.
 
 ## Inputs needed for the prototype
 

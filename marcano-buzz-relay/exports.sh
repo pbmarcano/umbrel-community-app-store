@@ -1,6 +1,7 @@
 # Public prototype identity. Buzz binds a community to the authority in this URL,
 # so changing it after real use requires deliberate migration and validation.
 export APP_MARCANO_BUZZ_RELAY_URL="wss://buzz.jerseyplebs.com"
+export APP_MARCANO_BUZZ_PAIRING_RELAY_URL="wss://pair.buzz.jerseyplebs.com"
 export APP_MARCANO_BUZZ_MEDIA_BASE_URL="https://buzz.jerseyplebs.com/media"
 export APP_MARCANO_BUZZ_CORS_ORIGINS="https://buzz.jerseyplebs.com"
 export APP_MARCANO_BUZZ_RELAY_OWNER_PUBKEY="df478ecdffe91db90469aeced8d5a33efcaaf75231bb4d768e711184495107a7"
