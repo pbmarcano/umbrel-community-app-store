@@ -7,7 +7,7 @@ software packaged to run locally on umbrelOS.
 
 | App | ID | Status |
 | --- | --- | --- |
-| Buzz Relay | `marcano-buzz-relay` | Experimental prototype |
+| Buzz Relay | `marcano-buzz-relay` | Working private prototype; desktop validated, mobile pairing in progress |
 
 ## Work in progress
 

@@ -4,7 +4,7 @@ This document is the durable project record for packaging Block's Buzz relay in 
 community app store. Read it before changing the Buzz package so decisions and test
 results survive across development and LLM sessions.
 
-Last research pass: 2026-08-26
+Last validation pass: 2026-09-22
 
 ## Objective
 
@@ -26,13 +26,17 @@ acceptable until the package is explicitly marked ready for wider use.
   before runtime installation.
 - Runtime testing on Umbrel: primary relay, authenticated desktop access, event
   ingestion, PostgreSQL, Redis, and MinIO validated successfully.
-- Mobile pairing sidecar: packaged on host port `3781`; external TLS routing and
-  end-to-end QR pairing remain to be validated.
+- Mobile pairing sidecar: running on host port `3781`, advertised through NIP-11
+  as `wss://pairing.jerseyplebs.com`; phone pairing and cross-device message
+  persistence are working.
+- Personal-use prototype status: complete as of 2026-09-22. The app survives an
+  Umbrel app restart, media works across clients, and the Git object-store A3
+  conformance gate passes against the packaged MinIO service.
 - General-purpose setup UI: deliberately deferred.
 
-Next action: update to package `0.2.1-4`, route
-`pairing.jerseyplebs.com` through Cloudflare Tunnel to Umbrel port `3781`,
-and validate desktop-to-mobile QR pairing.
+Next action: use and observe the private deployment. When work resumes, begin the
+separate publishable-package phase: per-install community/domain setup, relay-key
+portability, generic pairing ingress, upgrades, and broader hardware testing.
 
 ## Inputs needed for the prototype
 
@@ -86,9 +90,13 @@ The first prototype consists of:
 | `redis` | Pub/sub, presence, typing and coordination | Redis AOF data |
 | `minio` | S3-compatible media and Git object storage | MinIO data |
 | `minio-init` | One-shot private bucket creation | None |
+| `pairing-relay` | Stateless NIP-AB desktop/mobile pairing rendezvous | None |
 
-Do not collapse these dependencies into the relay container. Mobile pairing is a
-separate optional service and is deferred until the core stack is working.
+Do not collapse these dependencies into the relay container. Mobile pairing must
+remain separate because its temporary identities cannot authenticate against the
+membership-locked primary relay. The pinned Buzz image contains both binaries;
+Compose must replace its baked-in entrypoint with
+`/usr/local/bin/buzz-pair-relay` for the pairing service.
 
 ### Generate server secrets from Umbrel entropy
 
@@ -177,9 +185,9 @@ Commit `.gitkeep` files for empty source directories required on first install. 
 the runtime users can write every mount; do not assume that forcing UID/GID 1000 is
 valid for PostgreSQL, Redis, or MinIO without testing their entrypoints.
 
-## Internal ports
+## Network and ingress
 
-The planned network map is:
+The validated network map is:
 
 | Port | Service | Exposure |
 | --- | --- | --- |
@@ -190,10 +198,34 @@ The planned network map is:
 | `6379` | Redis | Internal only |
 | `9000` | MinIO S3 API | Internal only |
 | `9001` | MinIO console | Internal only; likely unnecessary to expose |
-| `5000` | Optional pairing relay | Deferred; later route through `/pair` |
+| `5000` | NIP-AB pairing relay | Published as Umbrel host port `3781` |
 
-Choose an unused Umbrel manifest port during implementation. The manifest port is not
-the relay's internal port 3000.
+The primary Umbrel manifest port is `3780`; the pairing sidecar is separately
+published on `3781`. Cloudflare Tunnel owns public TLS and routes:
+
+| Public endpoint | Tunnel origin | Purpose |
+| --- | --- | --- |
+| `buzz.jerseyplebs.com` | `http://<umbrel-lan-ip>:3780` | Relay HTTP, REST and WebSocket |
+| `pairing.jerseyplebs.com` | `http://<umbrel-lan-ip>:3781` | Temporary pairing WebSockets |
+
+The pairing hostname deliberately has one label before `jerseyplebs.com` so the
+existing `*.jerseyplebs.com` certificate covers it. The earlier
+`pair.buzz.jerseyplebs.com` name failed during TLS negotiation because a wildcard
+matches only one label and does not cover a nested subdomain.
+
+Operational verification:
+
+```bash
+docker ps --filter name=marcano-buzz-relay
+docker logs --tail 100 marcano-buzz-relay_relay_1
+docker logs --tail 100 marcano-buzz-relay_pairing-relay_1
+curl -s -H 'Accept: application/nostr+json' \
+  https://buzz.jerseyplebs.com | jq '.pairing_relay_url'
+curl -Iv https://pairing.jerseyplebs.com
+```
+
+The NIP-11 query should return `wss://pairing.jerseyplebs.com`. The pairing URL
+does not need to return a normal web page, but its public TLS handshake must succeed.
 
 ## Image policy
 
@@ -232,24 +264,30 @@ minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2
 
 ### Phase 2: Core runtime validation
 
-- Install through the Umbrel community app store, not raw Compose alone.
-- Confirm every dependency becomes healthy.
-- Confirm automatic PostgreSQL migrations complete.
-- Confirm MinIO bucket initialization and the Git conformance probe succeed.
-- Verify `/_liveness`, `/_readiness`, and NIP-11 responses.
-- Verify a real WebSocket upgrade through Umbrel's proxy.
-- Confirm logs report that the deployment community was ensured and the owner was
+- [x] Install through the Umbrel community app store, not raw Compose alone.
+- [x] Confirm every dependency becomes healthy.
+- [x] Confirm automatic PostgreSQL migrations complete.
+- [x] Confirm MinIO bucket initialization succeeds.
+- [x] Verify relay readiness and NIP-11 responses.
+- [x] Verify real WebSocket connections through Umbrel's proxy and Cloudflare.
+- [x] Confirm logs report that the deployment community was ensured and the owner was
   bootstrapped.
+- [x] Confirm the Git object-store A3 conformance probe passes against MinIO.
 
 ### Phase 3: User workflow validation
 
-- Connect Buzz Desktop using the canonical relay URL.
-- Authenticate as the configured owner.
-- Create a channel and send messages.
-- Restart the app from Umbrel and verify channels and messages persist.
-- Upload and retrieve media, then restart and verify it persists.
-- Exercise Git repository creation/push/clone if supported by the selected client.
-- Inspect settled logs for authorization, host routing, database, Redis and S3 errors.
+- [x] Connect Buzz Desktop using the canonical relay URL.
+- [x] Authenticate as the configured owner.
+- [x] Query and publish events through the desktop client.
+- [x] Deploy and advertise the standalone pairing relay.
+- [x] Generate a mobile-pairing QR code without relay or TLS errors.
+- [x] Complete mobile credential import and verify a mobile session.
+- [x] Confirm existing messages are available across desktop and mobile.
+- [x] Send and retrieve messages across desktop and mobile.
+- [x] Restart the app from Umbrel and verify clients, messages, and services recover.
+- [x] Upload and retrieve media across clients and retain access after restart.
+- [ ] Exercise Git repository creation/push/clone if supported by the selected client.
+- [ ] Inspect settled logs for authorization, host routing, database, Redis and S3 errors.
 
 ### Phase 4: Operations validation
 
@@ -270,7 +308,11 @@ component. It should:
 - never request the owner's private key;
 - show relay health and client connection instructions;
 - route HTTP and WebSocket traffic to the relay;
-- optionally route `/pair` to the stateless pairing relay;
+- configure and advertise a dedicated public hostname for the stateless pairing relay;
+- generate or import a stable relay signing key, explain its backup contract, and
+  preserve relay identity when migrating to another Umbrel;
+- replace this prototype's fixed community, domain, owner, and Cloudflare assumptions
+  with validated per-install configuration;
 - preserve the Phase 1 data and secret layout during migration.
 
 That helper must be open source, small, auditable, unprivileged, multi-architecture,
@@ -286,21 +328,35 @@ but never paste keys, credentials, private hostnames, cookies, or sensitive logs
 | Static package lint | Passed 2026-08-26 | Official Umbrel linter: 0 errors; expected `minio-init` one-shot restart warning |
 | AMD64 image manifests | Passed 2026-08-26 | All five pinned image indexes include AMD64 |
 | ARM64 image manifests | Passed 2026-08-26 | All five pinned image indexes include ARM64 |
-| Fresh Umbrel install | Not started | |
-| PostgreSQL migrations | Not started | |
-| MinIO initialization | Not started | |
-| Relay readiness | Not started | |
-| NIP-11 response | Not started | |
-| WebSocket upgrade | Not started | |
-| Owner bootstrap | Not started | |
-| Desktop connection | Not started | |
-| Message persistence | Not started | |
-| Media persistence | Not started | |
+| Fresh Umbrel install | Passed 2026-09-03 | Installed package `0.2.1-2` after correcting service discovery and MinIO initialization |
+| PostgreSQL migrations | Passed 2026-09-03 | Relay logged `Postgres connected` and `Database migrations complete` |
+| MinIO initialization | Passed 2026-09-03 | Private `buzz-media` bucket created; URL-safe service alias required |
+| Relay readiness | Passed 2026-09-03 | Relay remained available behind Umbrel app proxy |
+| NIP-11 response | Passed 2026-09-22 | Primary endpoint advertises the dedicated pairing URL in package `0.2.1-4` |
+| WebSocket upgrade | Passed 2026-09-03 | Connections established through Cloudflare; NIP-42 authentication succeeded |
+| Owner bootstrap | Passed 2026-09-03 | Configured owner pubkey bootstrapped in deployment community |
+| Desktop connection | Passed 2026-09-03 | Authenticated queries and accepted event writes observed |
+| Cross-device messages | Passed 2026-09-22 | Paired phone loaded the existing message history |
+| Media persistence | Passed 2026-09-22 | Upload and retrieval worked from the user-facing clients and remained available after app restart |
+| Git A3 conformance | Passed 2026-09-22 | Probe admitted MinIO after 32-way races; 9 transport-unknown racers were dropped without violating the observer floor |
 | Git workflow | Not started | |
-| Umbrel restart | Not started | |
-| Backup and restore | Not started | |
+| Umbrel app restart | Passed 2026-09-22 | All services returned healthy; clients and persisted content remained usable |
+| Backup coverage | Active | Operator uses Umbrel backups; cross-machine restore and relay-key portability are deferred |
 | Version upgrade | Not started | |
-| Mobile pairing | Deferred | After the core stack works |
+| Pairing sidecar | Passed 2026-09-22 | Port `3781`; TLS at `pairing.jerseyplebs.com`; desktop QR generation works |
+| Mobile session | Passed 2026-09-22 | Phone paired successfully and loaded persisted messages |
+
+## Personal-use sign-off
+
+The private deployment is accepted as complete for current personal use. Installation,
+service health, database migrations, owner authentication, desktop access, mobile
+pairing, cross-device messaging, media, application restart persistence, public TLS,
+and MinIO's Git storage semantics have all been exercised successfully.
+
+Full Git repository workflows and managed agents remain optional feature work rather
+than blockers. A destructive restore drill, cross-machine relay-identity recovery,
+resource baselining, and generalized configuration are requirements for a future
+public package, not for this private prototype.
 
 ## Backup contract
 
@@ -313,9 +369,10 @@ Until runtime tests prove otherwise, preserve together:
 - derived relay identity and service-secret inputs;
 - owner public configuration.
 
-The operator must separately back up the owner's Nostr private key. Aim for PostgreSQL,
-MinIO, and Git snapshots from the same maintenance window. Test restoration rather
-than treating the existence of backup files as proof.
+The operator uses Umbrel backups for the current private deployment and must separately
+retain the owner's Nostr private key. The relay signing key is currently derived from
+Umbrel entropy. Its portability and recovery model must be deliberately redesigned or
+documented before this package is offered to other communities.
 
 ## Known risks and open questions
 
@@ -337,7 +394,10 @@ than treating the existence of backup files as proof.
 - Umbrel proxy authentication must be disabled for protocol clients, increasing the
   importance of Buzz's own closed-membership defaults.
 - The upstream Compose bundle does not start the pairing relay even though the binary
-  is included in the image.
+  is included in the image. Package `0.2.1-3` added it; `0.2.1-4` corrected the
+  public hostname to fit the existing wildcard TLS certificate.
+- Docker Compose `command` does not replace the Buzz image's baked-in relay
+  entrypoint. The pairing service must use `entrypoint` or it starts the wrong binary.
 - The release documentation treats Git disk state as backup-worthy, while newer
   upstream architecture increasingly treats it as object-store-backed working state.
   Preserve it until the packaged release is tested and its recovery behavior is clear.
