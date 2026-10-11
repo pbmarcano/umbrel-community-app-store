@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: marcano-tududi_web_1
+      APP_PORT: 3002
+      # Tududi has its own accounts, and API clients authenticate with
+      # personal API keys, which Umbrel's login cookie would block.
+      PROXY_AUTH_ADD: "false"
+
+  web:
+    image: chrisvel/tududi:1.9.1@sha256:e3496f2d68c6cfb69e85bd779ae30da2f3e81b78a8b0e7595e6dc97ef9cb71ef
+    # Starts as root; the entrypoint chowns the data directories to PUID:PGID
+    # and drops privileges.
+    # Upstream re-runs user creation for TUDUDI_USER_EMAIL on every boot, so
+    # changing the admin's email would recreate umbrel@umbrel.local. Seed the
+    # admin only on first boot, before the database exists.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        if [ -f /app/db/production.sqlite3 ]; then unset TUDUDI_USER_EMAIL TUDUDI_USER_PASSWORD; fi;
+        exec /app/scripts/docker-entrypoint.sh
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      # Seeds the first admin; see the entrypoint above.
+      TUDUDI_USER_EMAIL: umbrel@umbrel.local
+      TUDUDI_USER_PASSWORD: ${APP_PASSWORD}
+      TUDUDI_SESSION_SECRET: ${APP_MARCANO_TUDUDI_SESSION_SECRET}
+      TUDUDI_TRUST_PROXY: "1"
+      # Umbrel serves several apps from one hostname on different ports. HSTS
+      # is per host, so leaving it on would force HTTPS on every app there.
+      DISABLE_HSTS: "true"
+      SWAGGER_ENABLED: "true"
+    volumes:
+      - ${APP_DATA_DIR}/data/db:/app/db
+      - ${APP_DATA_DIR}/data/uploads:/app/uploads
+      - ${APP_DATA_DIR}/data/backups:/app/backups

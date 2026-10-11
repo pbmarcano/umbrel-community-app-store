@@ -1,0 +1,37 @@
+manifestVersion: 1
+id: marcano-tududi
+category: files
+name: Tududi
+version: "1.9.1"
+tagline: A calm, self-hosted system for tasks, projects, notes, and areas
+description: >-
+  Tududi organizes life and work in one hierarchy: areas hold projects, and
+  projects hold tasks and notes. Capture into an inbox, plan with Today,
+  Upcoming, and Someday views, tag tasks by context, and set up recurring
+  tasks. Projects track their own progress and flag themselves as stalled
+  when nothing moves.
+
+
+  Tududi has its own accounts, so Umbrel's login screen is bypassed. Sign in
+  with the email below and this app's generated password, then change both
+  under Profile. Invite other people, or an AI agent, as separate users and
+  share projects with them. The REST API accepts personal API keys, and its
+  Swagger docs are served at /api-docs once you sign in.
+releaseNotes: "Initial Umbrel package of Tududi 1.9.1."
+
+developer: Chris Veleris
+website: https://tududi.com
+dependencies: []
+repo: https://github.com/chrisvel/tududi
+support: https://github.com/chrisvel/tududi/issues
+
+port: 3782
+icon: https://raw.githubusercontent.com/chrisvel/tududi/v1.9.1/public/icon-logo.png
+gallery: []
+path: ""
+
+defaultUsername: "umbrel@umbrel.local"
+deterministicPassword: true
+
+submitter: Pete Marcano
+submission: https://github.com/pbmarcano/umbrel-community-app-store

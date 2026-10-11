@@ -8,6 +8,7 @@ software packaged to run locally on umbrelOS.
 | App | ID | Status |
 | --- | --- | --- |
 | Buzz Relay | `marcano-buzz-relay` | Working private prototype; desktop validated, mobile pairing in progress |
+| Tududi | `marcano-tududi` | Packaged; image validated locally (first-run admin, restart, API keys), not yet installed on Umbrel |
 
 ## Work in progress
 
